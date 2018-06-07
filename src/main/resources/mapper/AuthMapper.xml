@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zjyouths.healthproject.ssmnew.dao.AuthMapper">
+
+    <!-- auth 去mybatis配置文件看看 别名配置了没   如果数据库名和类的变量名一样是可以不写的 -->
+    <resultMap id="queryByDbidResultMap" type="auth">
+        <id column="dbid" property="dbid"/>
+        <result column="authName" property="authName"/>
+        <result column="authCode" property="authCode"/>
+        <result column="authURL" property="authURL"/>
+        <result column="type" property="type"/>
+        <result column="parentId" property="parentId"/>
+        <result column="orders" property="order"/>
+        <result column="valid" property="valid"/>
+        <result column="layer" property="layer"/>
+        <!--  property="children" 类属性
+              ofType="auth"   list中item类型
+              select="queryByDbid"  要执行的sql
+              column="parentId"  sql要执行的int类型参数来源
+              代码量不多可能不好理解
+              - select:  需要递归执行的sql
+              - colum:   递归执行的sql所需要的参数
+         -->
+        <collection property="children" ofType="auth" select="queryByDbid" column="dbid"/>
+    </resultMap>
+    <select id="queryByDbid" parameterType="int" resultMap="queryByDbidResultMap">
+         select * from auth where parentId = #{dbid}
+    </select>
+
+
+    <update id="doUpdate" parameterType="auth">
+        UPDATE auth set authName = #{authName}, authCode = #{authCode},authURL = #{authURL},type = #{type},parentId = #{parentId},orders = #{order},valid = #{valid},layer = #{layer} where  dbid = #{dbid}
+    </update>
+
+    <update id="doAddAuth" parameterType="auth">
+        INSERT INTO auth(authName , authCode , authURL , type , parentId , orders , valid , layer ) VALUES (  #{authName}, #{authCode},  #{authURL},  #{type},  #{parentId},  #{order},  #{valid},  #{layer});
+    </update>
+
+    <select id="queryByRoleId" parameterType="int" resultType="int">
+        SELECT auth.dbid
+        from auth,role ,role_auth
+        WHERE role_auth.roleId = role.dbid
+        AND role_auth.authId = auth.dbid
+        AND role.dbid = #{roleId}
+    </select>
+
+</mapper>

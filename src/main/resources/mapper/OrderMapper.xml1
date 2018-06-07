@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zjyouths.healthproject.ssm.dao.OrderMapper">
+    <!--
+             这是1对1练习   一个订单只对应一个用户
+    -->
+    <!--   resultType="user" resultType="map"(这种是一一对应的关系，字段是没有不对应的  数据看 )
+           resultMap="order" （字段是有不对应的user是对象  早上一不小心写多的那种）
+
+          使用id和result来映射数据库中的字段到pojo的属性
+          - id标签指的是实体的唯一标识
+          - result标签指的是普通字段
+          colum&property
+          - column指的是数据库中的字段名
+          - property指的是pojo中的属性名
+    -->
+    <resultMap id="queryByIdResultMap" type="orders">
+        <!--   id属性指的是实体得 唯一标识   -->
+        <!--   id数据库主键  column:数据库主键名   property：java类的主键名  -->
+        <id column="id" property="id"/>
+        <!--   result数据库非主键  column:数据库非主键名   property：java类的非主键名  -->
+        <result column="create_time" property="createTime"/>
+        <!--  association：表有关联其他表   property：java类的变量名：   javaType：类的全类名（这里用别名） -->
+        <association property="user" javaType="user">
+            <id column="uid" property="uid"/>
+            <result column="name" property="name"/>
+            <result column="password" property="password"/>
+            <result column="email" property="email"/>
+            <result column="gender" property="gender"/>
+            <result column="birth" property="birth"/>
+        </association>
+    </resultMap>
+    <!-- <select id="queryById" parameterType="java.lang.Integer" resultMap=""> -->
+    <select id="queryById" parameterType="int" resultMap="queryByIdResultMap">
+            select orders.* , user.*
+            from orders,user
+            where orders.user_id = user.uid
+                  AND orders.id = #{id}     <!--    不要分号;            -->
+    </select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!--
+           1对多练习    1个订单有1个订单详情    1个订单详情对应多个产品
+    -->
+    <resultMap id="queryByIdResultMap2" type="orders2">
+        <!--   id属性指的是实体得 唯一标识   -->
+        <!--   id数据库主键  column:数据库主键名   property：java类的主键名  -->
+        <id column="id" property="id"/>
+        <!--   result数据库非主键  column:数据库非主键名   property：java类的非主键名  -->
+        <result column="create_time" property="createTime"/>
+        <!--  association：表有关联其他表   property：java类的变量名：   javaType：类的全类名（这里用别名） -->
+        <association property="user" javaType="user">
+            <id column="uid" property="uid"/>
+            <result column="name" property="name"/>
+            <result column="password" property="password"/>
+            <result column="email" property="email"/>
+            <result column="gender" property="gender"/>
+            <result column="birth" property="birth"/>
+        </association>
+        <!--   list<Product> products
+        property:类Orders2中list的名字    ofType:list中item的属性product （集合中元素的数据类型）
+        -->
+        <collection property="products" ofType="product">
+            <!--有同名数据库字段要重命名-->
+            <!--<id column="id" property="id"/>-->
+             <!--<result column="name" property="name"/>-->
+            <id column="product_id" property="id"/>
+             <result column="product_name" property="name"/>
+             <result column="price" property="price"/>
+             <result column="quantity" property="quantity"/>
+        </collection>
+
+    </resultMap>
+    <!-- <select id="queryById" parameterType="java.lang.Integer" resultMap=""> -->
+    <select id="queryById2" parameterType="int" resultMap="queryByIdResultMap2">
+        <!--  select orders.* , user.* , orders_detail.*,product.*    有同名数据库字段要重命名 -->
+        select orders.* , user.* , orders_detail.*,product.id  product_id ,product.name product_name,product.price
+        from orders,user,orders_detail,product
+        where orders.user_id = user.uid
+        AND orders_detail.order_id = orders.id
+        AND product.id = orders_detail.product_id
+        AND orders.id = #{id}        <!--    不要分号;     -->
+    </select>
+
+
+
+
+
+
+
+
+
+
+
+
+    <!--
+            多对多练习   一个用户有多个订单 ( 1个订单有1个订单详情    1个订单详情对应多个产品 )
+    -->
+    <resultMap id="queryByUidResultMap" type="userOrder">
+        <id column="uid" property="uid"/>
+        <result column="name" property="name"/>
+        <result column="password" property="password"/>
+        <result column="gender" property="gender"/>
+        <result column="email" property="email"/>
+        <result column="birth" property="birth"/>
+        <collection property="orders" ofType="orders3">
+            <id column="order_id" property="id"/>
+            <result column="create_time" property="createTime"/>
+            <collection property="products" ofType="product">
+                <id column="product_id" property="id"/>
+                <result column="product_name" property="name"/>
+                <result column="price" property="price"/>
+                <result column="quantity" property="quantity"/>
+            </collection>
+        </collection>
+    </resultMap>
+    <select id="queryByUid" parameterType="int" resultMap="queryByUidResultMap">
+        select orders.* , user.* , orders_detail.*,product.name product_name,product.price
+        from orders,user,orders_detail,product
+        where orders.user_id = user.uid
+              AND orders_detail.order_id = orders.id
+              AND product.id = orders_detail.product_id
+              AND orders.id = #{uid};
+    </select>
+
+
+
+</mapper>

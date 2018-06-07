@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zjyouths.healthproject.ssmnew.dao.RoleMapper">
+
+    <insert id="add" parameterType="role" >
+           INSERT INTO role(roleName,roleCode,valid,orders) VALUES ( #{roleName},#{roleCode},#{valid},#{orders})
+    </insert>
+
+    <!--
+          Request URL:http://localhost:8099/ssm02-quanxianguanli/static/temp/datagrid_data1.json?page=4&rows=8
+    -->
+    <select id="query1" parameterType="map" resultType="role">
+         select * from role where 1 = 1
+         <if test="roleName != null">
+             AND  roleName = #{roleName}
+         </if>
+        <if test="roleCode != null">
+            AND  roleCode = #{roleCode}
+        </if>
+        <if test="valid != null">
+            AND  valid = #{valid}
+        </if>
+        <!--<if test="page != null  &amp;&amp; rows != null   ">-->
+            <!--limit  #{(page - 1) * rows } , #{rows}-->
+        <!--</if>-->
+        <if test="start != null  &amp;&amp; rows != null   ">
+            limit  #{start} , #{rows}
+        </if>
+
+    </select>
+
+
+
+
+    <select id="query" parameterType="map" resultType="role">
+        select * from role where 1 = 1
+        <if test="roleName != null">
+            AND  roleName like concat('%',#{roleName},'%')
+        </if>
+        <if test="roleCode != null">
+            AND  roleCode = #{roleCode}
+        </if>
+        <if test="valid != null">
+            AND  valid = #{valid}
+        </if>
+        <!--<if test="page != null  &amp;&amp; rows != null   ">-->
+        <!--limit  #{(page - 1) * rows } , #{rows}-->
+        <!--</if>-->
+        order BY  orders
+        <if test="start != null  &amp;&amp; rows != null   ">
+            limit  #{start} , #{rows}
+        </if>
+
+
+    </select>
+
+
+    <select id="getCount" parameterType="map" resultType="int">
+        select count(dbid) from role where 1 = 1
+        <if test="roleName != null">
+            AND  roleName like concat('%',#{roleName},'%')
+        </if>
+        <if test="roleCode != null">
+            AND  roleCode = #{roleCode}
+        </if>
+        <if test="valid != null">
+            AND  valid = #{valid}
+        </if>
+        <!--    这个是查询 条件下所有的条数  不是当页的条数   返回该条件下的totalCount  -->
+        <!--<if test="page != null  &amp;&amp; rows != null   ">-->
+        <!--limit  #{(page - 1) * rows } , #{rows}-->
+        <!--</if>-->
+        <!--<if test="start != null  &amp;&amp; rows != null   ">-->
+            <!--limit  #{start} , #{rows}-->
+        <!--</if>-->
+        order BY  orders
+
+    </select>
+
+    <resultMap id="mapResultMap" type="map">
+        <id property="id" column="id"/>
+        <result property="text" column="text"/>
+        <collection property="children" ofType="map" select="getAllVilidAuth" column="id">
+        </collection>
+    </resultMap>
+    <select id="getAllVilidAuth" resultMap="mapResultMap" parameterType="int" >
+         SELECT dbid id,authName text FROM auth WHERE valid = 1 and parentId= #{dbid};
+    </select>
+
+
+
+    <delete id="deleteByRoleId" parameterType="int">
+        DELETE  FROM  role_auth where roleId = #{roleId}
+    </delete>
+
+    <insert id="insertAuth" parameterType="list">
+        INSERT  INTO  role_auth (roleId, authId) VALUES
+        <foreach collection="list" item="row" separator=",">
+            (#{row.roleId},#{row.authId})
+        </foreach>
+    </insert>
+
+</mapper>
